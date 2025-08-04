@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { BarChart3, Upload } from "lucide-react";
+import {Link} from "react-router-dom";
+
 
 const Header = () => {
   return (
@@ -25,10 +27,10 @@ const Header = () => {
 
         <div className="flex items-center gap-3">
           <Button variant="analytics" size="sm" asChild>
-            <a href="/app">
+            <Link to="/app">
               <Upload className="h-4 w-4" />
               Upload CSV
-            </a>
+            </Link>
           </Button>
         </div>
       </div>

@@ -18,7 +18,7 @@ const App = () => (
       <DataProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter basename='/static'>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/app" element={<DashboardLayout />}>
