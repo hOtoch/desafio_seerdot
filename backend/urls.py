@@ -17,7 +17,13 @@ Including another URLconf
 
 from django.urls import path, include
 from api.views import health, upload_sales
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+
+
 urlpatterns = [
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path("api/health/", health),
     path("api/upload-sales/", upload_sales),
 ]
