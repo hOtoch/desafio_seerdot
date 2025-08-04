@@ -45,6 +45,7 @@ const Upload = () => {
   const processData = async () => {
       if (!uploadedFile) return;
       setIsProcessing(true);
+      setMetrics(null);
     
       const form = new FormData();
       form.append("file", uploadedFile);
@@ -61,8 +62,9 @@ const Upload = () => {
         }
     
         const metrics = await res.json(); 
+        console.log(metrics)
     
-        setMetrics(metrics);         // mantém a lógica existente
+        setMetrics(metrics.metrics);         // mantém a lógica existente
         setIsDataLoaded(true);
     
         toast({
