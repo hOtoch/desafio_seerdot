@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from api.services.sales_processing import load_csv_to_df, calculate_metrics
+from drf_spectacular.utils import extend_schema
 
 REQUIRED_COLS = [
     "Date", "Product", "Category",
@@ -16,8 +17,18 @@ REQUIRED_COLS = [
 def health(_):
     return Response({"ok": True})
 
+@extend_schema( # utilizaremos esse metadado para possibilitar o envio de um arquivo na requisição feita pelo swagger
+    request={
+        "multipart/form-data": {
+            "type": "object",
+            "properties": {"file": {"type": "string", "format": "binary"}},
+        }
+    },
+    responses={200: ...} 
+)
+
 @api_view(["POST"])
-@parser_classes([MultiPartParser])
+@parser_classes([MultiPartParser]) # multipart/form-data
 def upload_sales(request):
     file = request.FILES.get("file")
     if not file:

@@ -14,7 +14,7 @@ def _br_to_float(series: pd.Series) -> pd.Series:
     """
     return (
         series.astype(str)
-              .str.replace('.', ',', regex=False)  
+              .str.replace('.', '', regex=False)  
               .str.replace(',', '.', regex=False) 
               .astype(float)
     )
