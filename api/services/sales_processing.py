@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from datetime import date
 
 REQUIRED = [
     "Date", "Product", "Category",
@@ -43,6 +44,22 @@ def load_csv_to_df(fh) -> pd.DataFrame:
     df.fillna(0, inplace=True)
 
     return df
+
+def filter_df_by_date_range(df: pd.DataFrame, start_date: date | None, end_date: date | None) -> pd.DataFrame:
+    """Filtra o DataFrame por um intervalo de datas (inclusivo)."""
+    if not start_date and not end_date:
+        return df
+
+    mask = pd.Series(True, index=df.index) # começamos marcando todas as linhas como True
+
+    if start_date:
+        mask &= (df['Date'] >= pd.Timestamp(start_date))
+    if end_date:
+        # para resolver o problema de incluir o dia final, o filtro vai até o início do dia seguinte
+        mask &= (df['Date'] < pd.Timestamp(end_date) + pd.Timedelta(days=1))
+
+    return df[mask]
+
 
 def calculate_metrics(df: pd.DataFrame) -> dict[str, any]:
     metrics = {
