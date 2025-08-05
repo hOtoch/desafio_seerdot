@@ -1,7 +1,18 @@
-import { DollarSign, ShoppingCart, Users, Target } from "lucide-react";
+import { useState, useEffect } from "react";
+import { DollarSign, ShoppingCart, Users, Target, Calendar as CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { useData } from "@/context/DataContext";
 import Chart from "react-apexcharts";
+import { DateRange } from "react-day-picker";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+
+const API_URL = import.meta.env.VITE_API_URL!;
 
 const toBRL = (n: number) =>
   n.toLocaleString("pt-BR", {
@@ -11,7 +22,18 @@ const toBRL = (n: number) =>
   });
 
 const Dashboard = () => {
-  const { metrics } = useData();
+  const { metrics, setMetrics, uploadedFile, isDataLoaded, setIsDataLoaded } = useData(); 
+
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [activeFilter, setActiveFilter] = useState<string>("all");
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (activeFilter === 'custom' && dateRange?.from && dateRange?.to){
+      applyFilter('custom', dateRange.from, dateRange.to);
+    }
+  }, [dateRange, activeFilter])
+
 
   if (!metrics) {
     return (
@@ -20,6 +42,64 @@ const Dashboard = () => {
       </div>
     );
   }
+
+  const applyFilter = async (period: string,startDate?: Date, endDate?: Date) => {
+    if (!uploadedFile) {
+      toast({
+        title: "Aviso",
+        description: "Nenhum arquivo CSV foi carregado para filtrar.",
+        variant: "default",
+      });
+      return;
+    }
+
+    setIsDataLoaded(false);
+    setMetrics(null);
+
+    const form = new FormData();
+    form.append("file", uploadedFile);
+
+    // constroi a query para fazer a requisição ao backend
+
+    let query = `?period=${period}`;
+    if (period === 'custom' && startDate && endDate) {
+      query = `?period=custom&start_date=${format(startDate, "yyyy-MM-dd")}&end_date=${format(endDate, "yyyy-MM-dd")}`;
+    }
+ 
+    try {
+      const res = await fetch(`${API_URL}/api/upload-sales/${query}`, {
+        method: "POST",
+        body: form,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Falha ao aplicar o filtro.");
+      }
+
+      const data = await res.json();
+      setMetrics(data.metrics); 
+
+    } catch (error: any) {
+      toast({
+        title: "Erro ao Filtrar",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDataLoaded(true); 
+    }
+
+  }
+
+  const handleFilterClick = (period: string) => {
+    setActiveFilter(period);
+    if (period !== 'custom') {
+      applyFilter(period);
+    }
+  };
+
+
 
   const cards = [
     {
@@ -119,6 +199,50 @@ const Dashboard = () => {
         <p className="text-muted-foreground">
           Insights calculados pelo back-end a partir do CSV.
         </p>
+
+      {/* Filtro de data */}
+      <div className="flex items-center gap-2 mt-6">
+            <Button variant={activeFilter === 'all' ? 'analytics' : 'outline'} onClick={() => handleFilterClick('all')}>Período Completo</Button>
+            <Button variant={activeFilter === 'this_month' ? 'analytics' : 'outline'} onClick={() => handleFilterClick('this_month')}>Esse mês</Button>
+            <Button variant={activeFilter === 'last_7_days' ? 'analytics' : 'outline'} onClick={() => handleFilterClick('last_7_days')}>Últimos 7 dias</Button>
+
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={activeFilter === 'custom' ? 'analytics' : 'outline'}
+                        className={cn("w-[300px] justify-start text-left font-normal")}
+                        onClick={() => setActiveFilter('custom')}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? (
+                            dateRange.to ? (
+                                <>
+                                    {format(dateRange.from, "LLL dd, y", { locale: ptBR })} -{" "}
+                                    {format(dateRange.to, "LLL dd, y", { locale: ptBR })}
+                                </>
+                            ) : (
+                                format(dateRange.from, "LLL dd, y", { locale: ptBR })
+                            )
+                        ) : (
+                            <span>Customizado</span>
+                        )}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                        locale={ptBR}
+                    />
+                </PopoverContent>
+            </Popover>
+        </div>
+
       </header>
 
       {/* Metrics */}

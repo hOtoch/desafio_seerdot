@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useData } from "@/context/DataContext";
+import { set } from "date-fns";
 const API_URL = import.meta.env.VITE_API_URL!;
 
 const Upload = () => {
@@ -13,7 +14,14 @@ const Upload = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { setMetrics, setIsDataLoaded } = useData();
+  const { setMetrics, setIsDataLoaded, setUploadedFile: setGlobalUploadedFile } = useData();
+
+  const handleFileChange = (file: File | null) => {
+    if (file && file.type === "text/csv") {
+      setUploadedFile(file); // Atualiza o estado local
+      setGlobalUploadedFile(file); // Salva o arquivo no contexto global
+    }
+  }
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -31,14 +39,14 @@ const Upload = () => {
     
     const files = e.dataTransfer.files;
     if (files.length > 0 && files[0].type === "text/csv") {
-      setUploadedFile(files[0]);
+      handleFileChange(files[0]);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
-      setUploadedFile(files[0]);
+      handleFileChange(files[0]);
     }
   };
 
@@ -46,6 +54,7 @@ const Upload = () => {
       if (!uploadedFile) return;
       setIsProcessing(true);
       setMetrics(null);
+
     
       const form = new FormData();
       form.append("file", uploadedFile);
@@ -62,7 +71,6 @@ const Upload = () => {
         }
     
         const metrics = await res.json(); 
-        console.log(metrics)
     
         setMetrics(metrics.metrics);         // mantém a lógica existente
         setIsDataLoaded(true);

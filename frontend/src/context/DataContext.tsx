@@ -28,7 +28,9 @@ interface DataContextType {
   isDataLoaded: boolean;
   setIsDataLoaded: (loaded: boolean) => void;
   metrics: Metrics | null;            
-  setMetrics: (m: Metrics) => void; 
+  setMetrics: (m: Metrics | null) => void; 
+  uploadedFile: File | null;
+  setUploadedFile: (file: File | null) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -37,6 +39,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [salesData, setSalesData] = useState<SalesData[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   return (
     <DataContext.Provider
@@ -46,7 +49,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isDataLoaded,
         setIsDataLoaded,
         metrics,        
-        setMetrics,       
+        setMetrics,
+        uploadedFile,
+        setUploadedFile,
       }}
     >
       {children}
