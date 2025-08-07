@@ -86,9 +86,8 @@ def upload_sales(request):
 
     return Response(
         {
-            "start_date": start_date,
-            "end_date": end_date,
             "records": filtered_df.to_dict(orient="records"),
             "metrics": metrics,
         }
     )
+    
