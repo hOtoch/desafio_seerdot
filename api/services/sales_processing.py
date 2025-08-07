@@ -60,12 +60,26 @@ def filter_df_by_date_range(df: pd.DataFrame, start_date: date | None, end_date:
     return df[mask]
 
 
+
 def calculate_metrics(df: pd.DataFrame) -> dict[str, any]:
+    
+    sales_by_client = df['Customer_ID'].value_counts().to_dict()
+    revenue_by_client = (
+            df.groupby("Customer_ID")["Total_Amount"]
+            .sum()
+            .apply(float)
+    )
+    
+    client_summary = {
+        client_id: [sales_by_client[client_id], round(revenue,4)] for client_id,  revenue in revenue_by_client.items()
+    }
+    
     metrics = {
         "total_revenue": float(df["Total_Amount"].sum()),
         "orders": int(len(df)),
         "customers": int(df["Customer_ID"].nunique()),
         "avg_ticket": float(df["Total_Amount"].mean()) if len(df) else 0,
+        
 
         "revenue_by_category": df.groupby("Category")["Total_Amount"].sum().to_dict(),
         "revenue_by_month": (
@@ -88,6 +102,8 @@ def calculate_metrics(df: pd.DataFrame) -> dict[str, any]:
             .sum()
             .apply(float)
             .to_dict()
-        )
+        ),
+        "client_summary": client_summary,
+        
     }
     return metrics
