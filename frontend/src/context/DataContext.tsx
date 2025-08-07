@@ -21,6 +21,7 @@ export interface Metrics {
     revenue_by_month: Record<string, number>;
     top_products: Record<string, number>;
     revenue_by_region: Record<string, number>;
+    client_summary: Record<string,[number, number]>;
 }
 
 interface DataContextType {

@@ -292,6 +292,37 @@ const Dashboard = () => {
         ))}
       </section>
 
+      {/* Top 5 Clientes */}
+      <section>
+        <Card className="border-analytics-primary/10">
+          <CardHeader>
+            <CardTitle className="text-foreground">Top 5 Clientes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm text-left">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 font-semibold text-muted-foreground">Cliente</th>
+                    <th className="px-4 py-2 font-semibold text-muted-foreground">Qtd. Vendas</th>
+                    <th className="px-4 py-2 font-semibold text-muted-foreground">Faturamento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(metrics.client_summary).map(([clientId, [sales, revenue]]) => (
+                    <tr key={clientId} className="border-b last:border-b-0">
+                      <td className="px-4 py-2">{clientId}</td>
+                      <td className="px-4 py-2">{sales}</td>
+                      <td className="px-4 py-2">{toBRL(revenue)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
       {/* Gráficos */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Receita por categoria */}
