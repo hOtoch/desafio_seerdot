@@ -63,7 +63,8 @@ def filter_df_by_date_range(df: pd.DataFrame, start_date: date | None, end_date:
 
 def calculate_metrics(df: pd.DataFrame) -> dict[str, any]:
     
-    sales_by_client = df['Customer_ID'].value_counts().to_dict()
+    sales_by_client = df['Customer_ID'].value_counts().head(5).to_dict()
+    
     revenue_by_client = (
             df.groupby("Customer_ID")["Total_Amount"]
             .sum()
@@ -71,7 +72,7 @@ def calculate_metrics(df: pd.DataFrame) -> dict[str, any]:
     )
     
     client_summary = {
-        client_id: [sales_by_client[client_id], round(revenue,4)] for client_id,  revenue in revenue_by_client.items()
+        client_id: [count_sales, round(revenue_by_client[client_id],4)] for client_id,  count_sales in sales_by_client.items()
     }
     
     metrics = {
