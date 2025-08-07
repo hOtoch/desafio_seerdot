@@ -80,10 +80,16 @@ const Dashboard = () => {
       const data = await res.json();
       setMetrics(data.metrics); 
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = "Ocorreu um erro desconhecido.";
+      if (error instanceof Error) {
+        message = error.message;
+      } else if (typeof error === "string") {
+        message = error;
+      }
       toast({
         title: "Erro ao Filtrar",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -189,6 +195,30 @@ const Dashboard = () => {
     theme: { mode: "light" as const },
   };
 
+  const regionSeries = Object.values(metrics.revenue_by_region);
+  const regionOptions = {
+    chart: { type: "pie" as const },
+    labels: Object.keys(metrics.revenue_by_region),
+    colors: ["#22c55e", "#3b82f6", "#ef4444", "#eab308", "#8b5cf6"],
+    theme: { mode: "light" as const },
+    tooltip: {
+      y: {
+        formatter: (val: number) => toBRL(val),
+      },
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number) => `${val.toFixed(1)}%`,
+    },
+    legend: {
+      position: "bottom" as const,
+      formatter: function(seriesName: string, opts: any) {
+        const value = toBRL(opts.w.globals.series[opts.seriesIndex]);
+        return `${seriesName}: ${value}`;
+      }
+    },
+  };
+
   /* ---------- render ---------- */
   return (
     <div className="p-8 space-y-8">
@@ -263,7 +293,7 @@ const Dashboard = () => {
       </section>
 
       {/* Gráficos */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Receita por categoria */}
         <Card className="border-analytics-primary/10">
           <CardHeader>
@@ -272,7 +302,7 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="h-64">
-            <Chart options={catOptions} series={catSeries} type="bar" height="100%" />
+            <Chart options={catOptions} series={catSeries} type="bar" height="120%" />
           </CardContent>
         </Card>
 
@@ -282,17 +312,27 @@ const Dashboard = () => {
             <CardTitle className="text-foreground">Receita por mês</CardTitle>
           </CardHeader>
           <CardContent className="h-64">
-            <Chart options={monthOptions} series={monthSeries} type="line" height="100%" />
+            <Chart options={monthOptions} series={monthSeries} type="line" height="120%" />
           </CardContent>
         </Card>
 
         {/* Top produtos */}
-        <Card className="border-analytics-primary/10 lg:col-span-2">
+        <Card className="border-analytics-primary/10">
           <CardHeader>
             <CardTitle className="text-foreground">Top 10 produtos</CardTitle>
           </CardHeader>
-          <CardContent className="h-72">
-            <Chart options={topOptions} series={topSeries} type="bar" height="100%" />
+          <CardContent className="h-64">
+            <Chart options={topOptions} series={topSeries} type="bar" height="120%" />
+          </CardContent>
+        </Card>
+
+        {/* Receita por Região */}
+        <Card className="border-analytics-primary/10">
+          <CardHeader>
+            <CardTitle className="text-foreground">Receita por Região</CardTitle>
+          </CardHeader>
+          <CardContent className="h-64">
+            <Chart options={regionOptions} series={regionSeries} type="pie" height="120%" />
           </CardContent>
         </Card>
       </section>
